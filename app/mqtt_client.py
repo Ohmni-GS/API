@@ -14,12 +14,6 @@ TOPIC = "iot/+/data"
 devices_data: Dict[str, List[Dict]] = {}
 connection_status: Dict[str, bool] = {}
 
-class DeviceData(BaseModel):
-    id: str
-    corrente: float
-    tensao: float
-    timestamp: datetime
-
 def send_connect_message(device_id: str):
     global connection_status
     connection_status[device_id] = False

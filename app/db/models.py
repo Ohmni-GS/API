@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean
-from db.base import Base
+from app.db.base import Base
 
 class UserModel(Base):
     __tablename__ = 'users'
@@ -18,9 +18,16 @@ class CommunityModel(Base):
 
 class DeviceModel(Base):
     __tablename__ = 'devices'
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     owner = Column(Integer, nullable=False)
     type = Column(String, nullable=False)
     is_collective = Column(Boolean, default=False)
     is_active = Column(Boolean, default=False)
+
+class DeviceDataModel(Base):
+    __tablename__ = 'device_data'
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, nullable=False)
+    data = Column(String, nullable=False)
+    timestamp = Column(String, nullable=False)
