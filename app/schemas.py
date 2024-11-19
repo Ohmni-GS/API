@@ -3,10 +3,10 @@ from sqlite3 import connect
 from pydantic import BaseModel, field_validator
 
 class User(BaseModel):
-    name: str
+    full_name: str
     email: str
     password: str
-    community: str
+    community_id: int
     is_manager: bool
 
     @field_validator('email')
@@ -21,10 +21,10 @@ class User(BaseModel):
             raise ValueError('password is too short')
         return v
     
-    @field_validator('community')
-    def community_must_be_valid(cls, v):
-        if not re.match(r"[a-zA-Z0-9_]+", v):
-            raise ValueError('invalid community name')
+    @field_validator('community_id')
+    def community_id_must_be_valid(cls, v):
+        if not isinstance(v, int):
+            raise ValueError('community_id must be an integer')
         return v
     
     @field_validator('is_manager')
@@ -36,7 +36,6 @@ class User(BaseModel):
 class Community(BaseModel):
     id: int
     name: str
-    description: str
 
     @field_validator('name')
     def name_must_be_valid(cls, v):
@@ -147,10 +146,10 @@ class DeviceLatestData(BaseModel):
             raise ValueError('timestamp must be a string')
         return v
 
-class ConnectResponse(BaseModel):
-    message: str
+class DefaultResponse(BaseModel):
+    msg: str
 
-    @field_validator('message')
+    @field_validator('msg')
     def detail_must_be_valid(cls, v):
         if not isinstance(v, str):
             raise ValueError('detail must be a string')
@@ -163,4 +162,27 @@ class HTTPErrorRequest(BaseModel):
     def detail_must_be_valid(cls, v):
         if not isinstance(v, str):
             raise ValueError('detail must be a string')
+        return v
+    
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in: str
+
+    @field_validator('access_token')
+    def access_token_must_be_valid(cls, v):
+        if not isinstance(v, str):
+            raise ValueError('access_token must be a string')
+        return v
+    
+    @field_validator('token_type')
+    def token_type_must_be_valid(cls, v):
+        if not isinstance(v, str):
+            raise ValueError('token_type must be a string')
+        return v
+    
+    @field_validator('expires_in')
+    def expires_in_must_be_valid(cls, v):
+        if not isinstance(v, str):
+            raise ValueError('expires_in must be a string')
         return v

@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status
 from app.mqtt_client import mqtt_client, devices_data, connection_status, send_connect_message
-from app.schemas import DeviceData, DeviceLatestData, Devices
+from app.schemas import DefaultResponse, DeviceData, DeviceLatestData, Devices
 
 class DeviceService:
     def get_all_devices(self) -> Devices:
@@ -24,10 +24,10 @@ class DeviceService:
             "data": devices_data[device_id]
         }
 
-    async def connect_device(self, device_id: str) -> dict:
+    async def connect_device(self, device_id: str) -> DefaultResponse:
         result = send_connect_message(device_id)
         if result == "connected":
-            return {"message": f"Dispositivo {device_id} conectado"}
+            return {"msg": f"Dispositivo {device_id} conectado"}
         if result == "timeout":
             raise HTTPException(status_code=status.HTTP_408_REQUEST_TIMEOUT, detail=f"Tempo esgotado. Dispositivo {device_id} não respondeu.")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=result)

@@ -7,14 +7,13 @@ class UserModel(Base):
     email = Column(String, unique=True, index=True)
     full_name = Column(String, nullable=False)
     password = Column(String, nullable=False)
-    community = Column(String, nullable=False)
+    community_id = Column(Integer, nullable=False)
     is_manager = Column(Boolean, default=False)
 
 class CommunityModel(Base):
     __tablename__ = 'communities'
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(String, nullable=False)
 
 class DeviceModel(Base):
     __tablename__ = 'devices'
