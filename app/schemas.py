@@ -1,5 +1,6 @@
 import re
 from sqlite3 import connect
+from typing import Optional
 from pydantic import BaseModel, field_validator
 
 class User(BaseModel):
@@ -31,6 +32,50 @@ class User(BaseModel):
     def is_manager_must_be_valid(cls, v):
         if not isinstance(v, bool):
             raise ValueError('is_manager must be a boolean')
+        return v
+    
+class UserWithoutPassword(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    community_id: int
+    is_manager: bool
+
+    @field_validator('email')
+    def email_must_be_valid(cls, v):
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", v):
+            raise ValueError('invalid email address')
+        return v
+    
+    @field_validator('community_id')
+    def community_id_must_be_valid(cls, v):
+        if not isinstance(v, int):
+            raise ValueError('community_id must be an integer')
+        return v
+    
+    @field_validator('is_manager')
+    def is_manager_must_be_valid(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError('is_manager must be a boolean')
+        return v
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    community_id: Optional[int] = None
+    is_manager: Optional[bool] = None
+
+    @field_validator('email')
+    def email_must_be_valid(cls, v):
+        if v and not re.match(r"[^@]+@[^@]+\.[^@]+", v):
+            raise ValueError('invalid email address')
+        return v
+    
+    @field_validator('password')
+    def password_must_be_strong(cls, v):
+        if v and len(v) < 8:
+            raise ValueError('password is too short')
         return v
     
 class Community(BaseModel):
@@ -166,19 +211,12 @@ class HTTPErrorRequest(BaseModel):
     
 class LoginResponse(BaseModel):
     access_token: str
-    token_type: str
     expires_in: str
 
     @field_validator('access_token')
     def access_token_must_be_valid(cls, v):
         if not isinstance(v, str):
             raise ValueError('access_token must be a string')
-        return v
-    
-    @field_validator('token_type')
-    def token_type_must_be_valid(cls, v):
-        if not isinstance(v, str):
-            raise ValueError('token_type must be a string')
         return v
     
     @field_validator('expires_in')
