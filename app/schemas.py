@@ -87,6 +87,15 @@ class Community(BaseModel):
         if not re.match(r"[a-zA-Z0-9_]+", v):
             raise ValueError('invalid community name')
         return v
+    
+class CommunityUpdate(BaseModel):
+    name: str
+
+    @field_validator('name')
+    def name_must_be_valid(cls, v):
+        if not re.match(r"[a-zA-Z0-9_]+", v):
+            raise ValueError('invalid community name')
+        return v
 
 class Devices(BaseModel):
     devices: list[dict]

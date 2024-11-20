@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import status
 from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import NoResultFound, IntegrityError
+from sqlalchemy.exc import IntegrityError
 from app.db.models import UserModel
 from app.schemas import LoginResponse, User, UserUpdate
 from decouple import config
@@ -14,7 +14,7 @@ SECRET_KEY = config('SECRET_KEY')
 ALGORITHM = config('ALGORITHM')
 crypt_context = CryptContext(schemes=["sha256_crypt"])
 
-class UserAuth:
+class UsersService:
     def __init__(self, db: Session):
         self.db = db
 
@@ -80,7 +80,6 @@ class UserAuth:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
         self.db.delete(user)
         self.db.commit()
-        return user
     
     def update_user(self, email: str, user_update: UserUpdate) -> User:
         db_user = self.get_user_by_email(email)
