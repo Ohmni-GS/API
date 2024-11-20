@@ -233,3 +233,8 @@ class LoginResponse(BaseModel):
         if not isinstance(v, str):
             raise ValueError('expires_in must be a string')
         return v
+    
+class MqttPayload(BaseModel):
+    id: str
+    corrente: float
+    tensao: float

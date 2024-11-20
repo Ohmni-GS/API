@@ -1,5 +1,4 @@
 # TODO
-- Melhorar a lógica de dispositivo conectado
 - Atualizar os schemas para os devices e devices_data terem id
 - Implementar salvamento no Banco de Dados (já funciona: usuários, comunidades)
 - Criar chaves estrangeiras do db
