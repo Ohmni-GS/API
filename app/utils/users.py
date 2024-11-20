@@ -8,6 +8,7 @@ from app.schemas import LoginResponse, User, UserUpdate
 from decouple import config
 from jose import jwt
 from passlib.context import CryptContext
+from psycopg2.errors import ForeignKeyViolation
 
 
 SECRET_KEY = config('SECRET_KEY')
@@ -24,16 +25,27 @@ class UsersService:
             full_name=user.full_name,
             password=self.get_password_hash(user.password),
             community_id=user.community_id,
-            is_manager=user.is_manager | False
+            is_manager=user.is_manager or False
         )
         try:
             self.db.add(db_user)
             self.db.commit()
             self.db.refresh(db_user)
-        except IntegrityError:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Usuário já cadastrado")
+        except IntegrityError as e:
+            if isinstance(e.orig, ForeignKeyViolation):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Comunidade associada ao usuário não existe"
+                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Usuário já cadastrado"
+            )
         except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=str(e)
+            )
     
     def login_user(self, email: str, password: str, expires_in: int = 1440) -> LoginResponse:
         user = self.get_user_by_email(email)
@@ -65,6 +77,9 @@ class UsersService:
     def get_user_by_email(self, email: str) -> User:
         return self.db.query(UserModel).filter(UserModel.email == email).first()
     
+    def get_user_by_id(self, user_id: int) -> User:
+        return self.db.query(UserModel).filter(UserModel.id == user_id).first()
+    
     def get_users(self) -> list[User]:
         return self.db.query(UserModel).all()
 
@@ -74,17 +89,18 @@ class UsersService:
     def get_password_hash(self, password: str) -> str:
         return crypt_context.hash(password)
     
-    def delete_user(self, email: str):
-        user = self.get_user_by_email(email)
+    def delete_user(self, id: str):
+        user = self.get_user_by_id(id)
         if not user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
         self.db.delete(user)
         self.db.commit()
     
-    def update_user(self, email: str, user_update: UserUpdate) -> User:
-        db_user = self.get_user_by_email(email)
+    def update_user(self, id: str, user_update: UserUpdate) -> User:
+        db_user = self.get_user_by_id(id)
         if not db_user:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuário não encontrado")
+
         if user_update.email is not None:
             db_user.email = user_update.email
         if user_update.full_name is not None:
@@ -96,6 +112,19 @@ class UsersService:
         if user_update.is_manager is not None:
             db_user.is_manager = user_update.is_manager
 
-        self.db.commit()
-        self.db.refresh(db_user)
+        try:
+            self.db.commit()
+            self.db.refresh(db_user)
+        except IntegrityError as e:
+            if isinstance(e.orig, ForeignKeyViolation):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Comunidade associada ao usuário não existe"
+                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Erro ao atualizar o usuário"
+            )
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
         return db_user

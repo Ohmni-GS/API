@@ -119,7 +119,7 @@ class Device(BaseModel):
     owner: int
     type: str
     is_collective: bool
-    is_active: bool
+    connected: bool
 
     @field_validator('name')
     def name_must_be_valid(cls, v):
@@ -139,17 +139,43 @@ class Device(BaseModel):
             raise ValueError('is_collective must be a boolean')
         return v
     
-    @field_validator('is_active')
+    @field_validator('connected')
     def is_active_must_be_valid(cls, v):
         if not isinstance(v, bool):
             raise ValueError('is_active must be a boolean')
         return v
     
+class DeviceAdd(BaseModel):
+    id: str
+    name: str
+    owner: int
+    type: str
+    is_collective: bool
+
+    @field_validator('name')
+    def name_must_be_valid(cls, v):
+        if not re.match(r"[a-zA-Z0-9_]+", v):
+            raise ValueError('invalid device name')
+        return v
+    
+    @field_validator('type')
+    def type_must_be_valid(cls, v):
+        if not re.match(r"[a-zA-Z0-9_]+", v):
+            raise ValueError('invalid device type')
+        return v
+    
+    @field_validator('is_collective')
+    def is_collective_must_be_valid(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError('is_collective must be a boolean')
+        return v
+    
 class DeviceData(BaseModel):
-    #id: int
+    id: str
     device_id: str
     connected: bool
-    data: list[dict]
+    corrente: float
+    tensao: float
 
     @field_validator('device_id')
     def device_id_must_be_valid(cls, v):
@@ -163,23 +189,37 @@ class DeviceData(BaseModel):
             raise ValueError('connected must be a boolean')
         return v
     
-    @field_validator('data')
-    def data_must_be_valid(cls, v):
-        if not isinstance(v, list) or not all(isinstance(i, dict) for i in v):
-            raise ValueError('data must be a list of dictionaries')
+    @field_validator('corrente')
+    def corrente_must_be_valid(cls, v):
+        if not isinstance(v, float):
+            raise ValueError('corrente must be a float')
         return v
     
-class DeviceLatestData(BaseModel):
-    # id: int
-    device_id: str
-    connected: bool
-    latest_data: dict
+    @field_validator('tensao')
+    def tensao_must_be_valid(cls, v):
+        if not isinstance(v, float):
+            raise ValueError('tensao must be a float')
+        return v
+    
+class DeviceDataSearch(BaseModel):
+    corrente: float
+    tensao: float
     timestamp: str
 
+class AllDeviceData(BaseModel):
+    device_id: str
+    connected: bool
+    name: str
+    owner: int
+    type: str
+    is_collective: bool
+    data: list[DeviceDataSearch]
+    total: int
+
     @field_validator('device_id')
     def device_id_must_be_valid(cls, v):
         if not isinstance(v, str):
-            raise ValueError('device_id must be an integer')
+            raise ValueError('device_id must be a string')
         return v
     
     @field_validator('connected')
@@ -188,16 +228,40 @@ class DeviceLatestData(BaseModel):
             raise ValueError('connected must be a boolean')
         return v
     
-    @field_validator('latest_data')
-    def data_must_be_valid(cls, v):
-        if not isinstance(v, dict):
-            raise ValueError('data must be a dictionary')
+    @field_validator('name')
+    def name_must_be_valid(cls, v):
+        if not isinstance(v, str):
+            raise ValueError('name must be a string')
         return v
     
-    @field_validator('timestamp')
-    def timestamp_must_be_valid(cls, v):
+    @field_validator('owner')
+    def owner_must_be_valid(cls, v):
+        if not isinstance(v, int):
+            raise ValueError('owner must be an integer')
+        return v
+    
+    @field_validator('type')
+    def type_must_be_valid(cls, v):
         if not isinstance(v, str):
-            raise ValueError('timestamp must be a string')
+            raise ValueError('type must be a string')
+        return v
+    
+    @field_validator('is_collective')
+    def is_collective_must_be_valid(cls, v):
+        if not isinstance(v, bool):
+            raise ValueError('is_collective must be a boolean')
+        return v
+
+    @field_validator('data')
+    def data_must_be_valid(cls, v):
+        if not isinstance(v, list) or not all(isinstance(i, DeviceDataSearch) for i in v):
+            raise ValueError('data must be a list of DeviceData objects')
+        return v
+    
+    @field_validator('total')
+    def total_must_be_valid(cls, v):
+        if not isinstance(v, int):
+            raise ValueError('total must be an integer')
         return v
 
 class DefaultResponse(BaseModel):

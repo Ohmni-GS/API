@@ -1,8 +1,9 @@
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.models import CommunityModel
 from app.schemas import Community, DefaultResponse
+from psycopg2.errors import ForeignKeyViolation
 
 class CommunitiesService:
 
@@ -57,6 +58,16 @@ class CommunitiesService:
         try:
             self.db.delete(db_community)
             self.db.commit()
+        except IntegrityError as e:
+            if isinstance(e.orig, ForeignKeyViolation):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Não é possível excluir a comunidade pois ela está sendo usada por um ou mais usuários"
+                )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Erro ao deletar a comunidade"
+            )
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
         return DefaultResponse(msg="Comunidade deletada com sucesso")
