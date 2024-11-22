@@ -1,6 +1,7 @@
 import asyncio
 import time
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.utils.mqtt_client import connection_status, connection_status_lock
 from app.routers.community_routes import community_router
 from app.routers.user_routes import user_router
@@ -33,6 +34,14 @@ app = FastAPI(
     version="1.0",
     docs_url="/",
     lifespan=lifespan
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Origens permitidas
+    allow_credentials=True,  # Permitir envio de cookies e cabeçalhos de autenticação
+    allow_methods=["*"],  # Métodos HTTP permitidos (GET, POST, PUT, etc.)
+    allow_headers=["*"],  # Cabeçalhos permitidos
 )
 
 app.include_router(user_router)
