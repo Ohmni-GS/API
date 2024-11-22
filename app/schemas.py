@@ -1,5 +1,4 @@
 import re
-from sqlite3 import connect
 from typing import Optional
 from pydantic import BaseModel, field_validator
 

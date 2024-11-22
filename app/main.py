@@ -1,6 +1,6 @@
 import asyncio
 import time
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from app.utils.mqtt_client import connection_status, connection_status_lock
 from app.routers.community_routes import community_router
 from app.routers.user_routes import user_router
